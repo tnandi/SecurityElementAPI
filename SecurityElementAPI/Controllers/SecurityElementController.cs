@@ -12,33 +12,31 @@ namespace SecurityElementAPI.Controllers
 {
     public class SecurityElementController : ApiController
     {
+        static readonly Dictionary<Guid, SecEleReq> input = new Dictionary<Guid, SecEleReq>();
+        static readonly Dictionary<Guid, SecEleRes> output = new Dictionary<Guid, SecEleRes>();
         // POST: api/Products
+        [HttpPost]
         [ResponseType(typeof(SecurityElementResponse))]
-        public IHttpActionResult PostProduct(SecurityElementRequest req)
+        public HttpResponseMessage PostProduct(SecEleReq req)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid && req!=null)
             {
-                return BadRequest(ModelState);
-            }
-            SecurityElementDBEntities db = new SecurityElementDBEntities();
-            SecurityElementResponse resp = new SecurityElementResponse()
-            {
-                Id = req.Id,
-                UID = req.UID,
-                CID = req.CID
-            };
+                req.dataInput = System.Web.HttpUtility.HtmlEncode(req.dataInput);
 
-            if(db.SecurityMasters.Find(req.Id) == null)
-            {
-                resp.Ack = "FAIL";
+                var Id = Guid.NewGuid();
+                input[Id] = req;
+
+                var response = new HttpResponseMessage(HttpStatusCode.Created)
+                {
+                    Content = new StringContent(req.dataInput)
+                };
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { action = "type", Id = Id }));
+                return response;
             }
             else
             {
-                resp.Ack = "SUCCESS";
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
-
-
-            return null;
         }
     }
 }
