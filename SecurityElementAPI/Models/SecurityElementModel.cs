@@ -8,8 +8,10 @@ namespace SecurityElementAPI.Models
 {
     public class SecurityElementRequest
     {
-        public string MethodToCall { get; set; }
-        public int Id { get; set; }
+        //public string MethodToCall { get; set; }
+        [Required]
+        [MaxLength(140)]
+        public string Id { get; set; }
         public string UID { get; set; }
         public string CID { get; set; }
     }

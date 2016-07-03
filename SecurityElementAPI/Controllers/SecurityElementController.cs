@@ -12,26 +12,41 @@ namespace SecurityElementAPI.Controllers
 {
     public class SecurityElementController : ApiController
     {
-        static readonly Dictionary<Guid, SecEleReq> input = new Dictionary<Guid, SecEleReq>();
+        static readonly Dictionary<Guid, SecurityElementRequest> input = new Dictionary<Guid, SecurityElementRequest>();
         static readonly Dictionary<Guid, SecEleRes> output = new Dictionary<Guid, SecEleRes>();
         // POST: api/Products
         [HttpPost]
+        [ActionName("SecCon")]
         [ResponseType(typeof(SecurityElementResponse))]
-        public HttpResponseMessage PostProduct(SecEleReq req)
+        public HttpResponseMessage PostProduct(SecurityElementRequest req)
         {
             if (ModelState.IsValid && req!=null)
             {
-                req.dataInput = System.Web.HttpUtility.HtmlEncode(req.dataInput);
+                SecurityElementDBEntities db = new SecurityElementDBEntities();
+                SecurityElementRequest request = new SecurityElementRequest();
+                SecurityElementResponse response = new SecurityElementResponse();
 
+                request.Id =System.Web.HttpUtility.HtmlEncode(req.Id);
+                int id = Convert.ToInt32(request.Id);
+                var resp = db.SecurityMasters.SingleOrDefault(sec => sec.Id == id);
+
+                if(resp != null)
+                {
+                    response.Id = resp.Id;
+                    response.CID = resp.CID;
+                    response.UID = resp.UID;
+                }
+                
                 var Id = Guid.NewGuid();
                 input[Id] = req;
 
-                var response = new HttpResponseMessage(HttpStatusCode.Created)
+                var res = new HttpResponseMessage(HttpStatusCode.Created)
                 {
-                    Content = new StringContent(req.dataInput)
+                    //Content = new StringContent(Convert.ToString(response.Id) +response.UID+response.CID+ " success is this")
+                    Content = new StringContent(response + " success is this")
                 };
-                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { action = "type", Id = Id }));
-                return response;
+                res.Headers.Location = new Uri(Url.Link("DefaultApi", new { action = "type", Id = Id }));
+                return res;
             }
             else
             {
